@@ -32,7 +32,20 @@ GAEL will scan all the specified packages for our annotations, then when useracc
         can exclude that one column that is not.
 
 4. > what are the erasure policies? specificly, when there is a row in the database, 4 columns of that row are private data, the rest are not, what then? Delete the whole row? Render private data as null?
-5. > Do we need to put GAEL's objects into Spring Container? what are the pros and cons?
+5. > Do we need to put GAEL's objects into Spring Container? what are the pros and cons?       
 6. > If the application uses ORMs(hibernate, mybatis etc.) to handle DB interactions, do we need to follow this custom, what are the pros and cons?
 7. > If the answer to the previous question is no, then we will have to handle user database connection and interaction ourselves, how are we supposed to do that? with ORMs? plain JDBC?
+8. > When user click the delete button, are we going to delete them immediately? Is there any recover method?
+                
+        Considering the recovering process, we may not delete
+        the data immediately. Instead we can make these data 
+        unaccessable, and remove them after a period of time (30 days).
 
+
+### 2. Idea two
+> If we are going to make GAEL4J compatible with spring-boot, one way to think about this is making it a spring plugin.
+> This requires our package to be registered as a bean in spring's container. This will require more understanding about spring factory.
+
+#### Process
+GAEL can be configured as an application listener. When users try to access or erase their personal data, this event will be 
+triggered and start looking for configuration file that contains the location of these data (database, table, column, ect).
