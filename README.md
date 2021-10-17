@@ -1,6 +1,15 @@
 # GAEL4J
 GDPR-compliant Data Access and Erasure Tool for Java
 
+
+## Roadmap
+
+1. Achieve **class level** *userdata* annotation **without** the *exclude* annotation. Application should be able to retrieve and delete designated userdata from database tables **without** *foreign key*
+
+Now we have two braches: applications that use JPA and those that don't
+
+The final ouput of both branches should be a ```Map<String, DatabaseConfig>```
+
 ## Some ideas for implementation
 
 ### 1. Idea one
