@@ -5,15 +5,22 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/*
- * for the time being, we consider user are using the same variable names in both Java and Database
- * So class name is considered as table name
- * field names are considered as column names
- * Potential improvement in the future*/
+/**
+ * 
+ * @author Barry Zhang
+ * this annotation will be put on entity classes to show that this class includes
+ * privacy information of the users
+ * @param table
+ * table indicates which table in the database is used to store this class
+ * @param schema
+ * name of the database that the table is located at
+ *
+ */
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface userdata {
+	public String table() default "";
 	public String schema() default "";
-
 }
+

@@ -18,7 +18,6 @@ public class AppTest
     public AppTest( String testName )
     {
         Gael gael=new Gael("com.gael4j.Gael");
-        gael.showdown();
     }
 
     /**
