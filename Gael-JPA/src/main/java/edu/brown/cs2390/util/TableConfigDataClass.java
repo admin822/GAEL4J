@@ -1,5 +1,6 @@
 package edu.brown.cs2390.util;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -11,11 +12,13 @@ import java.util.Map;
 public class TableConfigDataClass {
 
     private final String tableName;
+    private final String className;
     private final String[] privateFieldList;
     private final Map<String, String> variableNameToColumnName;
 
-    public TableConfigDataClass(String tableName, String[] privateFieldList, Map<String,String> variableNameToColumnName) {
+    public TableConfigDataClass(String tableName, String className, String[] privateFieldList, Map<String,String> variableNameToColumnName) {
         this.tableName = tableName;
+        this.className = className;
         this.privateFieldList = privateFieldList;
         this.variableNameToColumnName = variableNameToColumnName;
     }
@@ -34,5 +37,13 @@ public class TableConfigDataClass {
 
     public String[] getPrivateFieldList() {
         return privateFieldList;
+    }
+
+    public String getClassName() {
+        return className;
+    }
+
+    public String[] getPrivateColumnList() {
+        return Arrays.stream(privateFieldList).map(this::getColumnName).toArray(String[]::new);
     }
 }

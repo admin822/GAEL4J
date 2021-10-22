@@ -1,11 +1,11 @@
 package edu.brown.cs2390.controller;
 
 import edu.brown.cs2390.annotations.PrivateData;
+import edu.brown.cs2390.util.JPAUtils;
 import edu.brown.cs2390.util.TableConfigDataClass;
 import org.reflections.Reflections;
 
-import javax.persistence.Column;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import static org.reflections.scanners.Scanners.*;
 
@@ -47,8 +47,25 @@ public class Controller {
                 Column columnAnnotation = field.getAnnotation(Column.class);
                 variableNameToColumnName.put(field.getName(), columnAnnotation.name());
             }
-            tableList.add(new TableConfigDataClass(tableName, privateFiledList, variableNameToColumnName));
+            tableList.add(new TableConfigDataClass(tableName, personalClass.getName(), privateFiledList, variableNameToColumnName));
         }
         return tableList;
+    }
+
+    /***
+     * Using hibernate to query all filed in the table with given userid.
+     * @param tableList List of table configuration that are marked as private.
+     */
+    public void query(List<TableConfigDataClass> tableList, Long id) {
+        EntityManager manager = JPAUtils.getEntityManger();
+        for (TableConfigDataClass tableConfig: tableList) {
+            String queryString = "from " + tableConfig.getClassName() + " Where id= :userid";
+            Query query = manager.createQuery(queryString);
+            query.setParameter("userid", id);
+            List<?> res = query.getResultList();
+            for (Object item : res) {
+                System.out.println(item.toString());
+            }
+        }
     }
 }

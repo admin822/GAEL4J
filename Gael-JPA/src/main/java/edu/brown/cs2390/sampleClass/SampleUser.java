@@ -9,35 +9,28 @@ import javax.persistence.*;
  * @author Hugo Huang
  * Sampel User class with JPA annotation. We use this class as a test case.
  */
-@PrivateData(column = {"id", "name"})
+@PrivateData(column = {"id", "userName"})
 @Entity
-@Table(name = "USERS", uniqueConstraints=
-    @UniqueConstraint(columnNames = {"USER_ID", "USER_NAME"}))
+@Table(name = "users")
 public class SampleUser {
 
     public SampleUser() {}
 
-    public SampleUser(String userName, String age) {
+    public SampleUser(String userName, int age) {
         this.userName =  userName;
         this.age = age;
     }
 
     @Id
-    @Column(name = "USER_ID", unique=true, nullable=false)
-    @TableGenerator(
-            name = "sampleGen",
-            table = "sampleTable",
-            pkColumnName = "GEN_KEY",
-            valueColumnName = "GEN_VALUE",
-            pkColumnValue = "myId")
-    @GeneratedValue(strategy = GenerationType.TABLE, generator = "sampleGen ")
+    @Column(name = "userid", unique=true, nullable=false)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name="USER_NAME")
+    @Column(name="username")
     private String userName;
 
-    @Column(name="AGE")
-    private String age;
+    @Column(name="age")
+    private int age;
 
     public String getUserName() {
         return userName;
@@ -47,11 +40,16 @@ public class SampleUser {
         this.userName = userName;
     }
 
-    public String getAge() {
+    public int getAge() {
         return age;
     }
 
-    public void setAge(String age) {
+    public void setAge(int age) {
         this.age = age;
+    }
+
+    @Override
+    public String toString() {
+        return "User: id=" + id + "; name=" + userName + "; age=" + age;
     }
 }
