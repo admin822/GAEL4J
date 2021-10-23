@@ -3,11 +3,11 @@ package com.gael4j.Entity;
 import java.util.List;
 
 public class DBConfig {
-	private final String databaseName;
+	private final String databaseName; 
 	private final String tableName;
     private final String className; 
-    private final List<String> fieldList; 
-	private final List<String> columns;
+    private final List<String> fieldList; // names of all included fields in the class
+	private final List<String> columns; // names of all columns that correspond to the fields
 	public DBConfig(String databaseName, String tableName, String className, List<String> fieldList,
 			List<String> columns) {
 		super();

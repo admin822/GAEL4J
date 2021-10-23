@@ -38,14 +38,14 @@ public class Controller {
         for (Class<?> personalClass: personalClasses) {
             PrivateData privateDataAnnotation = personalClass.getAnnotation(PrivateData.class);
             String[] privateFiledList = privateDataAnnotation.column();
-            Table tableAnnotation = personalClass.getAnnotation(Table.class);
+            Table tableAnnotation = personalClass.getAnnotation(Table.class); // FIXME
             String tableName = tableAnnotation.name();
             Map<String, String> variableNameToColumnName = new HashMap<>();
 
             Field[] fields = personalClass.getDeclaredFields();
             for (Field field: fields) {
                 Column columnAnnotation = field.getAnnotation(Column.class);
-                variableNameToColumnName.put(field.getName(), columnAnnotation.name());
+                variableNameToColumnName.put(field.getName(), columnAnnotation.name()); // FIXME
             }
             tableList.add(new DBConfig(tableName, personalClass.getName(), privateFiledList, variableNameToColumnName));
         }
