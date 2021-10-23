@@ -29,8 +29,8 @@ in src folder:
 
 in test folder:
 
-- com.gael4j.JPA
-  - 
+- com.gael4j.JPA: this should include everything needed for testing the JPA branch.
+- com.gael4j.NonJPA: this should include everything needed for testing the Non-JPA branch
 
 ## Roadmap
 
