@@ -4,18 +4,13 @@ import static org.reflections.scanners.Scanners.TypesAnnotated;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.Column;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import javax.persistence.Table;
 
 import org.reflections.Reflections;
-import org.reflections.Reflections.*;
 
 import com.gael4j.Entity.DBConfig;
 import com.gael4j.Gael.Annotations.PrivateData;
@@ -34,20 +29,26 @@ public class Controller {
         Reflections reflections = new Reflections(packagePrefix);
         Set<Class<?>> personalClasses = reflections.get(TypesAnnotated.with(PrivateData.class).asClass());
         List<DBConfig> tableList = new ArrayList<>();
+        List<String> fieldList = new ArrayList<>();
+        List<String> columnList = new ArrayList<>();
 
         for (Class<?> personalClass: personalClasses) {
             PrivateData privateDataAnnotation = personalClass.getAnnotation(PrivateData.class);
-            String[] privateFiledList = privateDataAnnotation.column();
-            Table tableAnnotation = personalClass.getAnnotation(Table.class); // FIXME
+            String databaseName = privateDataAnnotation.schema();
+            Table tableAnnotation = personalClass.getAnnotation(Table.class);
             String tableName = tableAnnotation.name();
-            Map<String, String> variableNameToColumnName = new HashMap<>();
 
             Field[] fields = personalClass.getDeclaredFields();
             for (Field field: fields) {
                 Column columnAnnotation = field.getAnnotation(Column.class);
-                variableNameToColumnName.put(field.getName(), columnAnnotation.name()); // FIXME
+                fieldList.add(field.getName());
+                if (columnAnnotation != null) {
+                    columnList.add(columnAnnotation.name());
+                } else {
+                    columnList.add(field.getName());
+                }
             }
-            tableList.add(new DBConfig(tableName, personalClass.getName(), privateFiledList, variableNameToColumnName));
+            tableList.add(new DBConfig(databaseName, tableName, personalClass.getName(), fieldList, columnList));
         }
         return tableList;
     }

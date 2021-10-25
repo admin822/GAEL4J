@@ -2,12 +2,15 @@ package com.gael4j.Gael.JPA.Sample;
 
 import org.junit.Test;
 
-import com.gael4j.Gael.JPA.Entity.SampleUser;
+import com.gael4j.Entity.SampleUser;
 import com.gael4j.Gael.Util.JPAUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
+/***
+ * Create database using hibernate for testing.
+ */
 public class SampleUserDAOTest {
 
     @Test
@@ -18,12 +21,12 @@ public class SampleUserDAOTest {
         transaction.begin();
         SampleUser user = new SampleUser();
         user.setAge(12);
-        user.setUserName("Hugo Huang");
+        user.setName("Hugo Huang");
         manager.persist(user);
 
         SampleUser user2 = new SampleUser();
         user2.setAge(21);
-        user2.setUserName("QN Huang");
+        user2.setName("QN Huang");
         manager.persist(user2);
         transaction.commit();
 

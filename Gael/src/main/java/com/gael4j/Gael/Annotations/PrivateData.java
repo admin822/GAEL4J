@@ -1,17 +1,15 @@
 package com.gael4j.Gael.Annotations;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /***
  *
  * @author Hugo Huang
  * Cutome annotation indicating what is the private data in annotated class.
  */
+@Inherited
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface PrivateData {
-    String[] column();
+    String schema() default "";
 }

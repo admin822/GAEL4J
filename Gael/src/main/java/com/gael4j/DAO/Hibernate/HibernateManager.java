@@ -1,5 +1,6 @@
 package com.gael4j.DAO.Hibernate;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -13,15 +14,18 @@ public class HibernateManager {
     /***
      * Using hibernate to query all filed in the table with given userid.
      * @param tableList List of table configuration that are marked as private.
+     * @return List of result from query with given id.
      */
-    public static void query(List<DBConfig> tableList, Long id) {
+    public static List<Object> query(List<DBConfig> tableList, Long id) {
         EntityManager manager = JPAUtils.getEntityManger();
-            String queryString = "from " + tableConfig.getClassName() + " Where id= :userid";
+        List<Object> queryResult = new ArrayList<>();
+        for (DBConfig dbConfig: tableList) {
+            String queryString = "FROM " + dbConfig.getClassName() + " WHERE id= :userid";
             Query query = manager.createQuery(queryString);
             query.setParameter("userid", id);
-            List<?> res = query.getResultList();
-            for (Object item : res) {
-                System.out.println(item.toString());
-            }
+            List<?> curResult = query.getResultList();
+            queryResult.addAll(curResult);
         }
+        return queryResult;
+    }
 }

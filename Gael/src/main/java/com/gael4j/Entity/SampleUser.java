@@ -1,4 +1,4 @@
-package com.gael4j.Gael.JPA.Entity;
+package com.gael4j.Entity;
 import com.gael4j.Gael.Annotations.PrivateData;
 
 import javax.persistence.*;
@@ -8,15 +8,15 @@ import javax.persistence.*;
  * @author Hugo Huang
  * Sampel User class with JPA annotation. We use this class as a test case.
  */
-@PrivateData(column = {"id", "userName"})
+@PrivateData(schema = "2390finalsample")
 @Entity
 @Table(name = "users")
 public class SampleUser {
 
     public SampleUser() {}
 
-    public SampleUser(String userName, int age) {
-        this.userName =  userName;
+    public SampleUser(String name, int age) {
+        this.name = name;
         this.age = age;
     }
 
@@ -26,17 +26,19 @@ public class SampleUser {
     private Long id;
 
     @Column(name="username")
-    private String userName;
+    private String name;
 
     @Column(name="age")
     private int age;
 
-    public String getUserName() {
-        return userName;
+    private int ageWithoutColumn;
+
+    public String getName() {
+        return name;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setName(String userName) {
+        this.name = userName;
     }
 
     public int getAge() {
@@ -49,6 +51,6 @@ public class SampleUser {
 
     @Override
     public String toString() {
-        return "User: id=" + id + "; name=" + userName + "; age=" + age;
+        return "User: id=" + id + "; name=" + name + "; age=" + age + "; ageWithNoColumn=" + ageWithoutColumn;
     }
 }
