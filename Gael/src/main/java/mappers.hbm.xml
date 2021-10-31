@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<hibernate-mapping>
+          <class name="com.gael4j.Gael.NonJPA.Entity.Admin" table="admins">
+                    <id column="userID" name="userID"/>
+                    <property column="admin_name" name="userName"/>
+          </class>
+          <class name="com.gael4j.Gael.NonJPA.Entity.User" table="users">
+                    <id column="userID" name="userID"/>
+                    <property column="user_name" name="userName"/>
+          </class>
+</hibernate-mapping>
