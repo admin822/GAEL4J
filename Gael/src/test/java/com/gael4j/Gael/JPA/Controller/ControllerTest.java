@@ -2,7 +2,7 @@ package com.gael4j.Gael.JPA.Controller;
 
 import org.junit.Test;
 
-import com.gael4j.DAO.Hibernate.HibernateManager;
+import com.gael4j.DAO.JPA.Hibernate.HibernateManager;
 import com.gael4j.Entity.DBConfig;
 import com.gael4j.Gael.AnnotationProcessing.JPA.Controller;
 import com.gael4j.Entity.SampleUser;
