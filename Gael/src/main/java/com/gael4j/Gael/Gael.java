@@ -46,6 +46,21 @@ public class Gael {
 		}
 		return daoManager.query(id);
 	}
+	private void JPADeletion(String id){
+		//TODO
+	}
+	private void nonJpaDeletion(String id){
+		if(daoManager==null) {
+			this.daoManager=new HibernateManager(this.DBConfigList,NONJPA_RSC_PATH);
+		}
+		daoManager.delete(id);
+	}
+	public void delete(String id) {
+		if(useJPA) {
+			JPADeletion(id);
+		}
+		nonJpaDeletion(id);
+	}
 	public List<Object> query(String id){
 		if(useJPA) {
 			return JPAQuery();
