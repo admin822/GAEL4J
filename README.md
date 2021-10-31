@@ -2,9 +2,6 @@
 GDPR-compliant Data Access and Erasure Tool for Java
 
 
-## Presentation:
-1. Proposal: idea, target(BARRY)
-2. Design: Implementation design(HUGO)
 
 ## Code Structure:
 in src folder:
@@ -38,8 +35,11 @@ in test folder:
 
 Now we have two braches: applications that use JPA and those that don't
 
-The final ouput of both branches should be a ```Map<String, DatabaseConfig>```
 
+## FIX ME
+1. user needs to tell GAEL what the **primary key** for each table is, otherwise, even hibernate would not be able to act correctly; This means annotations, annotation processing, DBConfig all require changing
+2. user needs to tell GAEL all the information we need to build the JDBC url, like what is their db's url, what is their port etc.
+   
 ## Some ideas for future implementation
 
 ### 2. Idea One
