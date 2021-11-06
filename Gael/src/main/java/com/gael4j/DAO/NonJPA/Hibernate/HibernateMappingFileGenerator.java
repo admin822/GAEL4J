@@ -23,7 +23,6 @@ import org.w3c.dom.Element;
 public class HibernateMappingFileGenerator {
 	public static void generateMappers(List<DBConfig> dbConfigList, String filePath) {
 		try {
-			System.out.println("Working Directory = " + System.getProperty("user.dir"));
 			DocumentBuilderFactory documentFactory= DocumentBuilderFactory.newInstance();
 			DocumentBuilder documentBuilder=documentFactory.newDocumentBuilder();
 			Document document=documentBuilder.newDocument();
@@ -78,7 +77,7 @@ public class HibernateMappingFileGenerator {
 			transformer.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC,"yes");
 			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "10");
 			transformer.transform(domSource, streamsResult);
-			System.out.println("mapper configs successfully created!");
+			System.out.println("mapper configs successfully created at: "+filePath);
 			/* transform dom object to xml file*/
 		}catch (ParserConfigurationException pce) {
 			pce.printStackTrace();
