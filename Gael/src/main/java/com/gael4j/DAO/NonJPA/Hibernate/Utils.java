@@ -29,8 +29,8 @@ public class Utils {
         prop.setProperty("hibernate.connection.url", "jdbc:mysql://localhost:3306/"+dbConfig.getDatabaseName());
         //You can use any database you want, I had it configured for Postgres
         prop.setProperty("dialect", "org.hibernate.dialect.MySQ8LDialect");
-        prop.setProperty("hibernate.connection.username", "root");
-        prop.setProperty("hibernate.connection.password", "199880221Zmz");
+        prop.setProperty("hibernate.connection.username", "USERNAME");
+        prop.setProperty("hibernate.connection.password", "PASSWORD");
         prop.setProperty("hibernate.connection.driver_class", "com.mysql.cj.jdbc.Driver");
         prop.setProperty("show_sql", "true"); //If you wish to see the generated sql query
         prop.setProperty("connection.pool_size", "10"); // pool size is 10 rn
