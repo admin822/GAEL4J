@@ -31,6 +31,8 @@ public class HibernateMappingFileGenerator {
 			for(DBConfig dbConfig:dbConfigList) {
 				List<String> allFields=dbConfig.getfieldList(); 
 				List<String> allColumns=dbConfig.getColumns();
+				String primaryKeyField=dbConfig.getPrimaryKey();
+				String primaryKeyColumn=allColumns.get(allFields.indexOf(primaryKeyField));
 				/* creating class label in mapping file*/
 				Element classLabel=document.createElement("class");
 				root.appendChild(classLabel);
@@ -46,25 +48,30 @@ public class HibernateMappingFileGenerator {
 				Element idLabel=document.createElement("id");
 				classLabel.appendChild(idLabel);
 				Attr idFieldName=document.createAttribute("name");
-				idFieldName.setValue(allFields.get(0));    // !!!! BAD CODE, NEED TO CHANGE AFTER CHANGE DBCONFIG CLASS
+				idFieldName.setValue(primaryKeyField);    
 				Attr idColumnName=document.createAttribute("column");
-				idColumnName.setValue(allColumns.get(0));     // !!!! BAD CODE, NEED TO CHANGE AFTER CHANGE DBCONFIG CLASS
+				idColumnName.setValue(primaryKeyColumn);   
 				idLabel.setAttributeNode(idFieldName);
 				idLabel.setAttributeNode(idColumnName);
 				/* creating id label in mapping file*/
 				
+				
 				/* creating property label in mapping file*/
-				for(int i=1;i<allColumns.size();i++) {
+				for(int i=0;i<allColumns.size();i++) {
+					if(allFields.get(i)==primaryKeyField) {
+						continue;
+					}
 					Element propertyLabel=document.createElement("property");
 					classLabel.appendChild(propertyLabel);
 					Attr propertyFieldName=document.createAttribute("name");
-					propertyFieldName.setValue(allFields.get(i));    // !!!! BAD CODE, NEED TO CHANGE AFTER CHANGE DBCONFIG CLASS
+					propertyFieldName.setValue(allFields.get(i));  
 					Attr propertyColumnName=document.createAttribute("column");
-					propertyColumnName.setValue(allColumns.get(i));     // !!!! BAD CODE, NEED TO CHANGE AFTER CHANGE DBCONFIG CLASS
+					propertyColumnName.setValue(allColumns.get(i));   
 					propertyLabel.setAttributeNode(propertyFieldName);
 					propertyLabel.setAttributeNode(propertyColumnName);
 				}
 				/* creating property label in mapping file*/
+				
 			}
 			
 			/* transform dom object to xml file*/

@@ -26,15 +26,18 @@ import org.hibernate.service.ServiceRegistry;
 
 import com.gael4j.DAO.DAOManager;
 import com.gael4j.DAO.NonJPA.Hibernate.Concurrency.MultiDBConcurrency;
+import com.gael4j.DAO.NonJPA.Hibernate.Concurrency.MultiTableDeletion;
+import com.gael4j.DAO.NonJPA.Hibernate.Concurrency.MultiTableQuery;
 import com.gael4j.Entity.DBConfig;
 import java.util.concurrent.Executors;
 
 public class HibernateManager implements DAOManager{
 	private Map<String, SessionFactory> db2SessionFactory;
 	private Map<String, List<String>> db2Tables;
-	
+	private ExecutorService threadPool;
 	public HibernateManager(List<DBConfig> dbConfigList, String resourcePath) {
 		Utils.generateMapperFiles(dbConfigList,resourcePath);
+		threadPool=Executors.newFixedThreadPool(Math.min(10, dbConfigList.size())); // consistent with hibernate's connection pool
 		db2Tables=new HashMap<>();
 		db2SessionFactory=new HashMap<>();
 		for(DBConfig dbConfig:dbConfigList) {
@@ -52,13 +55,63 @@ public class HibernateManager implements DAOManager{
 			db2SessionFactory.put(dbName, sessionFactory);
 		}
 	}
-	public List<Object> query(String id){
+	public List<Object> query(DBConfig dbConfig, String primaryKeyValue){
 //		return slowQuery(id);
-		return fastQuery(id);
+//		return fastQuery(id);
+		return complexQuery(dbConfig, primaryKeyValue);
 	}
-	public void delete(String id) {
-		fastDeletion(id);
+	public void delete(DBConfig dbConfig, String primaryKeyValue) {
+//		fastDeletion(id);
+		complexDeletion(dbConfig, primaryKeyValue);
 	}
+	private void complexDeletion(DBConfig dbConfig, String primaryKeyValue) {
+		List<Future<?>> workers=new LinkedList<>();
+		workers.add(singleTableDeletion(dbConfig, primaryKeyValue));
+		for(Future<?> worker:workers) { // !!! Consider do we really need to wait here????
+			try {
+				worker.get();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	private List<Object> complexQuery(DBConfig dbConfig, String primaryKeyValue) {
+		List<Object> result=new LinkedList<>();
+		List<Object> threadSafeResult=Collections.synchronizedList(result);
+		List<Future<?>> workers=new LinkedList<>();
+		// for now we only worry about query the starting table
+		
+		workers.add(singleTableQuery(dbConfig, primaryKeyValue, threadSafeResult));
+		for(Future<?> worker:workers) {
+			try {
+				worker.get();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return result;
+	}
+	private Future<?> singleTableQuery(DBConfig dbConfig, String primaryKeyValue, List<Object> queryResult){
+		String tableName=dbConfig.getTableName();
+		Session session=db2SessionFactory.get(dbConfig.getDatabaseName()).openSession();
+		String idName=dbConfig.getPrimaryKey();
+		return threadPool.submit(new MultiTableQuery(tableName, primaryKeyValue, queryResult, session, idName));
+	}
+	private Future<?> singleTableDeletion(DBConfig dbConfig, String primaryKeyValue){
+		String tableName=dbConfig.getTableName();
+		Session session=db2SessionFactory.get(dbConfig.getDatabaseName()).openSession();
+		String idName=dbConfig.getPrimaryKey();
+		return threadPool.submit(new MultiTableDeletion(tableName, primaryKeyValue, session, idName));
+	}
+	
 	@Deprecated
 	private List<Object> slowQuery(String id){
 		List<Object> result=new LinkedList<>();
@@ -71,6 +124,8 @@ public class HibernateManager implements DAOManager{
 		}
 		return result;
 	}
+	
+	@Deprecated
 	private void fastDeletion(String id){
 		ExecutorService threadPool=Executors.newFixedThreadPool(Math.min(3, db2Tables.keySet().size()));
 		List<Future<?>> futures=new LinkedList<Future<?>>();
@@ -91,6 +146,8 @@ public class HibernateManager implements DAOManager{
 			}
 		}
 	}
+	
+	@Deprecated
 	private List<Object> fastQuery(String id){
 		List<Object> result=new LinkedList<>();
 		List<Object> threadSafeResult=Collections.synchronizedList(result);

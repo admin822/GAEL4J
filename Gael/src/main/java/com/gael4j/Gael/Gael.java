@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.sound.midi.MidiDevice.Info;
 
@@ -18,6 +19,7 @@ import com.gael4j.Gael.AnnotationProcessing.NonJPA.ReflectionProcessing;
 
 public class Gael {
 	List<DBConfig> DBConfigList;
+	Map<String, DBConfig> tableName2DBConfig;
 	boolean useJPA;
 	DAOManager daoManager=null;
 	final String NONJPA_RSC_PATH="./target/classes/mappers.hbm.xml";
@@ -40,32 +42,32 @@ public class Gael {
 		//TODO
 		return new ArrayList<>();
 	}
-	private List<Object> nonJpaQuery(String id){
+	private List<Object> nonJpaQuery(String id,String tableName){
 		if(daoManager==null) {
 			this.daoManager=new HibernateManager(this.DBConfigList,NONJPA_RSC_PATH);
 		}
-		return daoManager.query(id);
+		return daoManager.query(tableName2DBConfig.get(tableName),id);
 	}
 	private void JPADeletion(String id){
 		//TODO
 	}
-	private void nonJpaDeletion(String id){
+	private void nonJpaDeletion(String id,String tableName){
 		if(daoManager==null) {
 			this.daoManager=new HibernateManager(this.DBConfigList,NONJPA_RSC_PATH);
 		}
-		daoManager.delete(id);
+		daoManager.delete(tableName2DBConfig.get(tableName),id);
 	}
-	public void delete(String id) {
+	public void delete(String id,String tableName) {
 		if(useJPA) {
 			JPADeletion(id);
 		}
-		nonJpaDeletion(id);
+		nonJpaDeletion(id,tableName);
 	}
-	public List<Object> query(String id){
+	public List<Object> query(String id,String tableName){
 		if(useJPA) {
 			return JPAQuery();
 		}
-		return nonJpaQuery(id);
+		return nonJpaQuery(id,tableName);
 	}
 	
 	public Gael(String packageScanPath,boolean useJPA) {
@@ -76,5 +78,9 @@ public class Gael {
 		else {
 			DBConfigList=ReflectionProcessing.reflectionProcessing(packageScanPath);
 		}
+		if (DBConfigList != null) {
+			   tableName2DBConfig = DBConfigList.stream().collect(
+			         Collectors.toMap(DBConfig::getClassName, dbConfig->dbConfig));
+			}
 	}
 }

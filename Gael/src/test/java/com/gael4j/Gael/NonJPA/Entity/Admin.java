@@ -6,6 +6,7 @@ import com.gael4j.Gael.Annotations.userdata;
 
 @userdata(table = "admins", schema = "gael")
 public class Admin {
+	@primarykey
 	private Integer userID;
 	@columnName(name = "admin_name")
 	private String userName;

@@ -26,13 +26,15 @@ public class ReflectionProcessing {
 			for(Class<?> annotatedClass:allAnnotatedClasses) {
 				Field defaultPrimarykey=null;
 				for(Field field:annotatedClass.getDeclaredFields()) {
+					boolean hasNewName=field.getAnnotation(columnName.class)!=null;
+					boolean isPrimaryKey=field.getAnnotation(primarykey.class)!=null;
 					if(defaultPrimarykey==null) {
 						defaultPrimarykey=field; // initialization
 					}
-					if(field.getAnnotation(columnName.class)!=null) {
+					if(hasNewName) {
 						allColAnnotatedFields.add(field);
 					}
-					if(field.getAnnotation(primarykey.class)!=null) {
+					if(isPrimaryKey) {
 						if(class2PrimaryKeys.containsKey(annotatedClass)) {
 							throw new MultiplePrimaryKeyException();
 						}
