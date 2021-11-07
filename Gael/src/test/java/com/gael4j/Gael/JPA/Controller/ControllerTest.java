@@ -1,8 +1,9 @@
 package com.gael4j.Gael.JPA.Controller;
 
+import com.gael4j.DAO.DAOManager;
 import org.junit.Test;
 
-import com.gael4j.DAO.JPA.Hibernate.HibernateManager;
+import com.gael4j.DAO.JPA.Hibernate.JPAHibernateManager;
 import com.gael4j.Entity.DBConfig;
 import com.gael4j.Gael.AnnotationProcessing.JPA.Controller;
 import com.gael4j.Entity.SampleUser;
@@ -47,9 +48,8 @@ public class ControllerTest {
 
         manager.close();
         List<DBConfig> tableList = Controller.scan(packagePrefix);
-        List<Object> queryResults = HibernateManager.query(tableList, (long) 1);
-        for (Object queryResult: queryResults) {
-            System.out.println(queryResult.toString());
-        }
+        DAOManager daoManager = new JPAHibernateManager();
+        Object queryResults = daoManager.query(tableList.get(0), "1");
+        System.out.println(queryResults.toString());
     }
 }

@@ -2,24 +2,29 @@ package com.gael4j.Gael;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.sound.midi.MidiDevice.Info;
 
+import com.gael4j.Gael.Util.JPAUtils;
 import org.hibernate.query.criteria.internal.expression.function.LengthFunction;
 
 import com.gael4j.DAO.DAOManager;
 import com.gael4j.DAO.NonJPA.Hibernate.HibernateManager;
 import com.gael4j.DAO.NonJPA.Hibernate.HibernateMappingFileGenerator;
+import com.gael4j.DAO.JPA.Hibernate.JPAHibernateManager;
 import com.gael4j.Entity.DBConfig;
 import com.gael4j.Gael.AnnotationProcessing.JPA.Controller;
 import com.gael4j.Gael.AnnotationProcessing.NonJPA.ReflectionProcessing;
 
 public class Gael {
 	List<DBConfig> DBConfigList;
+	Map<String, DBConfig> tableName2DBConfig;
 	boolean useJPA;
-	DAOManager daoManager=null;
+	DAOManager daoManager;
 	final String NONJPA_RSC_PATH="./target/classes/mappers.hbm.xml";
 	/** THIS IS A TEST FUNCTION, DELETE IT BEFORE PUBLISH!
 	 * this function prints all entries in the privateInfoMap to the console
@@ -35,46 +40,35 @@ public class Gael {
 		this.daoManager=new HibernateManager(this.DBConfigList,NONJPA_RSC_PATH);
 	}
 	//#####################################
-	
-	private List<Object> JPAQuery(){
-		//TODO
-		return new ArrayList<>();
+
+	public void delete(String tableName, String primaryKeyValue) {
+		daoManager.delete(tableName2DBConfig.get(tableName), primaryKeyValue);
 	}
-	private List<Object> nonJpaQuery(String id){
-		if(daoManager==null) {
-			this.daoManager=new HibernateManager(this.DBConfigList,NONJPA_RSC_PATH);
-		}
-		return daoManager.query(id);
-	}
-	private void JPADeletion(String id){
-		//TODO
-	}
-	private void nonJpaDeletion(String id){
-		if(daoManager==null) {
-			this.daoManager=new HibernateManager(this.DBConfigList,NONJPA_RSC_PATH);
-		}
-		daoManager.delete(id);
-	}
-	public void delete(String id) {
-		if(useJPA) {
-			JPADeletion(id);
-		}
-		nonJpaDeletion(id);
-	}
-	public List<Object> query(String id){
-		if(useJPA) {
-			return JPAQuery();
-		}
-		return nonJpaQuery(id);
+	public List<Object> query(String tableName, String primaryKeyValue){
+		return daoManager.query(tableName2DBConfig.get(tableName), primaryKeyValue);
 	}
 	
 	public Gael(String packageScanPath,boolean useJPA) {
 		this.useJPA=useJPA;
+		List<DBConfig> dbConfigList;
 		if(this.useJPA) {
-			DBConfigList=Controller.scan(packageScanPath);
+			dbConfigList=Controller.scan(packageScanPath);
+		} else {
+			dbConfigList=ReflectionProcessing.reflectionProcessing(packageScanPath);
 		}
-		else {
-			DBConfigList=ReflectionProcessing.reflectionProcessing(packageScanPath);
+		if (dbConfigList != null) {
+			tableName2DBConfig = dbConfigList.stream().collect(
+					Collectors.toMap(DBConfig::getClassName, dbConfig->dbConfig));
 		}
+		if (useJPA) {
+			daoManager = new JPAHibernateManager();
+		} else {
+			daoManager = new HibernateManager(dbConfigList, NONJPA_RSC_PATH);
+		}
+	}
+
+	public Gael(String packageScanPath,boolean useJPA, String JPAPersistenceUnitName) {
+		this(packageScanPath, useJPA);
+		JPAUtils.persistenceUnitName = JPAPersistenceUnitName;
 	}
 }

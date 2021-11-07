@@ -9,7 +9,7 @@
             <property name="hibernate.connection.driver_class" value="com.mysql.jdbc.Driver" />
             <property name="hibernate.connection.url" value="jdbc:mysql://localhost:3306/2390finalsample" />
             <property name="hibernate.connection.username" value="shopizer" />
-            <property name="hibernate.connection.password" value="password" /> <!--可选配置--> <!--控制台打印sql语句-->
+            <property name="hibernate.connection.password" value="password" />
             <property name="hibernate.show_sql" value="true" />
 <!--            <property name="hibernate.format_sql" value="true" />-->
         </properties>
