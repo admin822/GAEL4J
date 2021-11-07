@@ -10,6 +10,9 @@ import java.util.stream.Collectors;
 import javax.sound.midi.MidiDevice.Info;
 
 import com.gael4j.Gael.Util.JPAUtils;
+
+import net.bytebuddy.asm.Advice.This;
+
 import org.hibernate.query.criteria.internal.expression.function.LengthFunction;
 
 import com.gael4j.DAO.DAOManager;
@@ -21,7 +24,7 @@ import com.gael4j.Gael.AnnotationProcessing.JPA.Controller;
 import com.gael4j.Gael.AnnotationProcessing.NonJPA.ReflectionProcessing;
 
 public class Gael {
-	List<DBConfig> DBConfigList;
+	List<DBConfig> dbConfigList;
 	Map<String, DBConfig> tableName2DBConfig;
 	boolean useJPA;
 	DAOManager daoManager;
@@ -31,13 +34,15 @@ public class Gael {
 	 */
 	//#####################################
 	public void testFunction() {
-		for(DBConfig config:DBConfigList) {
-			System.out.println(config.toString());
+		System.out.println(this.dbConfigList.size());
+		for(String tableName:tableName2DBConfig.keySet()) {
+			System.out.println(tableName);
+			System.out.println("    "+tableName2DBConfig.get(tableName).toString());
 		}
-		HibernateMappingFileGenerator.generateMappers(DBConfigList,NONJPA_RSC_PATH);
+		HibernateMappingFileGenerator.generateMappers(dbConfigList,NONJPA_RSC_PATH);
 	}
 	public void testHibernateManagerInit() {
-		this.daoManager=new HibernateManager(this.DBConfigList,NONJPA_RSC_PATH);
+		this.daoManager=new HibernateManager(this.dbConfigList,NONJPA_RSC_PATH);
 	}
 	//#####################################
 
@@ -50,7 +55,6 @@ public class Gael {
 	
 	public Gael(String packageScanPath,boolean useJPA) {
 		this.useJPA=useJPA;
-		List<DBConfig> dbConfigList;
 		if(this.useJPA) {
 			dbConfigList=Controller.scan(packageScanPath);
 		} else {
@@ -58,7 +62,7 @@ public class Gael {
 		}
 		if (dbConfigList != null) {
 			tableName2DBConfig = dbConfigList.stream().collect(
-					Collectors.toMap(DBConfig::getClassName, dbConfig->dbConfig));
+					Collectors.toMap(DBConfig::getTableName, dbConfig->dbConfig));
 		}
 		if (useJPA) {
 			daoManager = new JPAHibernateManager();

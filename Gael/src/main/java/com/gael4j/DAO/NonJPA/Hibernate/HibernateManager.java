@@ -33,27 +33,28 @@ import java.util.concurrent.Executors;
 
 public class HibernateManager implements DAOManager{
 	private Map<String, SessionFactory> db2SessionFactory;
-	private Map<String, List<String>> db2Tables;
+	private Map<String, List<String>> db2classes;
 	private ExecutorService threadPool;
 	public HibernateManager(List<DBConfig> dbConfigList, String resourcePath) {
 		Utils.generateMapperFiles(dbConfigList,resourcePath);
 		threadPool=Executors.newFixedThreadPool(Math.min(10, dbConfigList.size())); // consistent with hibernate's connection pool
-		db2Tables=new HashMap<>();
+		db2classes=new HashMap<>();
 		db2SessionFactory=new HashMap<>();
 		for(DBConfig dbConfig:dbConfigList) {
 			String dbName=dbConfig.getDatabaseName();
-			List<String> tables=db2Tables.getOrDefault(dbName, new LinkedList<>());
+			List<String> tables=db2classes.getOrDefault(dbName, new LinkedList<>());
 			tables.add(dbConfig.getClassName());
-			db2Tables.put(dbName, tables);
+			db2classes.put(dbName, tables);
 			if(db2SessionFactory.containsKey(dbName)) {
 				continue;
 			}
 			Properties dbProps=Utils.createDBProperties(dbConfig);
 			Configuration config=new Configuration().setProperties(dbProps);
 			
-			SessionFactory sessionFactory = config.addResource("mappers.hbm.xml").buildSessionFactory();	
+			SessionFactory sessionFactory = config.addResource("mappers.hbm.xml").buildSessionFactory();
 			db2SessionFactory.put(dbName, sessionFactory);
 		}
+		
 	}
 	public List<Object> query(DBConfig dbConfig, String primaryKeyValue){
 //		return slowQuery(id);
@@ -100,13 +101,13 @@ public class HibernateManager implements DAOManager{
 		return result;
 	}
 	private Future<?> singleTableQuery(DBConfig dbConfig, String primaryKeyValue, List<Object> queryResult){
-		String tableName=dbConfig.getTableName();
+		String tableName=dbConfig.getClassName();
 		Session session=db2SessionFactory.get(dbConfig.getDatabaseName()).openSession();
 		String idName=dbConfig.getPrimaryKey();
 		return threadPool.submit(new MultiTableQuery(tableName, primaryKeyValue, queryResult, session, idName));
 	}
 	private Future<?> singleTableDeletion(DBConfig dbConfig, String primaryKeyValue){
-		String tableName=dbConfig.getTableName();
+		String tableName=dbConfig.getClassName();
 		Session session=db2SessionFactory.get(dbConfig.getDatabaseName()).openSession();
 		String idName=dbConfig.getPrimaryKey();
 		return threadPool.submit(new MultiTableDeletion(tableName, primaryKeyValue, session, idName));
@@ -115,9 +116,9 @@ public class HibernateManager implements DAOManager{
 	@Deprecated
 	private List<Object> slowQuery(String id){
 		List<Object> result=new LinkedList<>();
-		for(String db:db2Tables.keySet()) {
+		for(String db:db2classes.keySet()) {
 			SessionFactory currentFac=db2SessionFactory.get(db);
-			for(String table:db2Tables.get(db)) {
+			for(String table:db2classes.get(db)) {
 				Session session = currentFac.openSession();
 				result.addAll(Utils.handleQuery(session, id,table,"userID"));
 			}
@@ -127,11 +128,11 @@ public class HibernateManager implements DAOManager{
 	
 	@Deprecated
 	private void fastDeletion(String id){
-		ExecutorService threadPool=Executors.newFixedThreadPool(Math.min(3, db2Tables.keySet().size()));
+		ExecutorService threadPool=Executors.newFixedThreadPool(Math.min(3, db2classes.keySet().size()));
 		List<Future<?>> futures=new LinkedList<Future<?>>();
-		for(String db:db2Tables.keySet()) {
+		for(String db:db2classes.keySet()) {
 			SessionFactory currentFac=db2SessionFactory.get(db);
-			List<String> tables=db2Tables.get(db);
+			List<String> tables=db2classes.get(db);
 			futures.add(threadPool.submit(new MultiDBConcurrency(true, null, currentFac, tables, "userID",id)));
 		}
 		for(Future<?> future:futures) {
@@ -151,11 +152,11 @@ public class HibernateManager implements DAOManager{
 	private List<Object> fastQuery(String id){
 		List<Object> result=new LinkedList<>();
 		List<Object> threadSafeResult=Collections.synchronizedList(result);
-		ExecutorService threadPool=Executors.newFixedThreadPool(Math.min(3, db2Tables.keySet().size()));
+		ExecutorService threadPool=Executors.newFixedThreadPool(Math.min(3, db2classes.keySet().size()));
 		List<Future<?>> futures=new LinkedList<Future<?>>();
-		for(String db:db2Tables.keySet()) {
+		for(String db:db2classes.keySet()) {
 			SessionFactory currentFac=db2SessionFactory.get(db);
-			List<String> tables=db2Tables.get(db);
+			List<String> tables=db2classes.get(db);
 			futures.add(threadPool.submit(new MultiDBConcurrency(false, threadSafeResult, currentFac, tables, "userID",id)));
 		}
 		for(Future<?> future:futures) {

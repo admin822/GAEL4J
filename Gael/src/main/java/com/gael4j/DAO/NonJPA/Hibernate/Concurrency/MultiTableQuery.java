@@ -27,6 +27,7 @@ public class MultiTableQuery implements Runnable{
 	            System.out.println(hql);
 	            Query query = session.createQuery(hql);
 	            List<Object> result = query.list();
+	            System.out.println(result.size());
 	            session.getTransaction().commit();
 	            this.queryResult.addAll(result);
 	    } catch (HibernateException e) {
