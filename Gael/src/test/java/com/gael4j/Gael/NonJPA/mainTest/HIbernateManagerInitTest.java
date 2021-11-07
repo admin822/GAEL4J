@@ -9,5 +9,6 @@ public class HIbernateManagerInitTest {
 	void initializationTest() {
 		Gael gaelIns1=new Gael("com.gael4j.Gael.NonJPA.Entity", false);
 		gaelIns1.testHibernateManagerInit();
+		
 	}
 }

@@ -1,9 +1,11 @@
 package com.gael4j.Gael.NonJPA.Entity;
 
+import com.gael4j.Gael.Annotations.primarykey;
 import com.gael4j.Gael.Annotations.userdata;
 
 @userdata(schema = "gael",table = "preferences")
 public class Preferences {
+	@primarykey
 	private Integer userID;
 	private String food;
 	private String sports;

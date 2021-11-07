@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Table;
 
 import org.reflections.Reflections;
@@ -35,11 +36,17 @@ public class Controller {
         for (Class<?> personalClass: personalClasses) {
             PrivateData privateDataAnnotation = personalClass.getAnnotation(PrivateData.class);
             String databaseName = privateDataAnnotation.schema();
+            String primaryKey = privateDataAnnotation.primaryKey();
             Table tableAnnotation = personalClass.getAnnotation(Table.class);
             String tableName = tableAnnotation.name();
 
             Field[] fields = personalClass.getDeclaredFields();
             for (Field field: fields) {
+                if (primaryKey.equals("")) {
+                    if (field.isAnnotationPresent(GeneratedValue.class)) {
+                        primaryKey = field.getName();
+                    }
+                }
                 Column columnAnnotation = field.getAnnotation(Column.class);
                 fieldList.add(field.getName());
                 if (columnAnnotation != null) {
@@ -48,7 +55,7 @@ public class Controller {
                     columnList.add(field.getName());
                 }
             }
-            tableList.add(new DBConfig(databaseName, tableName, personalClass.getName(), fieldList, columnList));
+            tableList.add(new DBConfig(databaseName, tableName, personalClass.getName(), primaryKey, fieldList, columnList));
         }
         return tableList;
     }

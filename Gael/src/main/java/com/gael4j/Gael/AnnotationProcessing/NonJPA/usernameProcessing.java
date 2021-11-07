@@ -1,4 +1,5 @@
 package com.gael4j.Gael.AnnotationProcessing.NonJPA;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,14 +16,17 @@ import com.gael4j.Gael.Util.Util;
  * the functionality of this module is to process 'userdata' annotations
  */
 public class usernameProcessing {
-	public static List<DBConfig> usernameAnnotationProcessing(Set<Class<?>> allAnnotatedClasses,Map<String, Map<String, String>>class2OldName2NewName) {
+	public static List<DBConfig> usernameAnnotationProcessing(Set<Class<?>> allAnnotatedClasses,
+																Map<String, Map<String, String>>class2OldName2NewName,
+																	Map<Class<?>, Field>class2PrimaryKeys) {
 		List<DBConfig> privateInfoList=new ArrayList<>();
 		for(Class<?> annotatedClass:allAnnotatedClasses) {
+			String primaryKey=class2PrimaryKeys.get(annotatedClass).getName();
 			String dbName=annotatedClass.getAnnotation(userdata.class).schema();
 			String tableName=annotatedClass.getAnnotation(userdata.class).table();
 			String className=annotatedClass.getName();
 			List<List<String>>fieldLists=Util.getAllFieldNames(annotatedClass,class2OldName2NewName);
-		    privateInfoList.add(new DBConfig(dbName, tableName, className, fieldLists.get(0), fieldLists.get(1)));
+		    privateInfoList.add(new DBConfig(dbName, tableName, className, primaryKey,fieldLists.get(0), fieldLists.get(1)));
 		}
 		return privateInfoList;
 	}

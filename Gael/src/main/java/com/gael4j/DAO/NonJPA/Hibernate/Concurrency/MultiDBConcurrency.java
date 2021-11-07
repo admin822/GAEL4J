@@ -35,7 +35,7 @@ public class MultiDBConcurrency implements Runnable{
 	public void run() {
 		if(isDeletion) {// delete user privacy
 			for(String table:tables) {
-				futures.add(threadPool.submit(new MultiTableDeletion(table, id, null, sessionFactory.openSession(), idName)));
+				futures.add(threadPool.submit(new MultiTableDeletion(table, id,sessionFactory.openSession(), idName)));
 			}
 		}
 		else { // query user privacy

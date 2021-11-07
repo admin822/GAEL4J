@@ -11,7 +11,7 @@ public class MultiTableDeletion implements Runnable{
 	String id;
 	Session session;
 	String idName;
-	public MultiTableDeletion(String tableName,String id,List<Object> queryResult, Session session,String idName) {
+	public MultiTableDeletion(String tableName,String id,Session session,String idName) {
 		this.tableName=tableName;
 		this.id=id;
 		this.session=session;

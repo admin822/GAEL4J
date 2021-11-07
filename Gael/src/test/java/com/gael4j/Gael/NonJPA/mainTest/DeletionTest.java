@@ -10,6 +10,6 @@ public class DeletionTest {
 	@Test
 	void deletionTest() {
 		Gael gaelIns1=new Gael("com.gael4j.Gael.NonJPA.Entity", false);
-		gaelIns1.delete("2");
+		gaelIns1.delete("users","2");
 	}
 }

@@ -31,14 +31,16 @@ in test folder:
 
 ## Roadmap
 
-1. Achieve **class level** *userdata* annotation **without** the *exclude* annotation. Application should be able to retrieve and delete designated userdata from database tables **without** *foreign key*
+- [x] Achieve **class level** *userdata* annotation **without** the *exclude* annotation. Application should be able to retrieve and delete designated userdata from database tables **without** *foreign key*
 
-Now we have two braches: applications that use JPA and those that don't
+- [x] Develope two branches: one with JPA annotation, the other without
+- [ ] Add in complex query and deletion logic when multiple tables connected with foreign keys are presented.
 
 
 ## FIX ME
-1. user needs to tell GAEL what the **primary key** for each table is, otherwise, even hibernate would not be able to act correctly; This means annotations, annotation processing, DBConfig all require changing
-2. user needs to tell GAEL all the information we need to build the JDBC url, like what is their db's url, what is their port etc.
+- [x] user needs to tell GAEL what the **primary key** for each table is, otherwise, even hibernate would not be able to act correctly; This means annotations, annotation processing, DBConfig all require changing
+- [ ] user needs to tell GAEL all the information we need to build the JDBC url, like what is their db's url, what is their port.
+- [ ] find a secure way for the user to provide their db's username and password.
    
 ## Some ideas for future implementation
 

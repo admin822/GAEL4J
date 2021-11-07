@@ -23,7 +23,6 @@ import org.w3c.dom.Element;
 public class HibernateMappingFileGenerator {
 	public static void generateMappers(List<DBConfig> dbConfigList, String filePath) {
 		try {
-			System.out.println("Working Directory = " + System.getProperty("user.dir"));
 			DocumentBuilderFactory documentFactory= DocumentBuilderFactory.newInstance();
 			DocumentBuilder documentBuilder=documentFactory.newDocumentBuilder();
 			Document document=documentBuilder.newDocument();
@@ -32,6 +31,8 @@ public class HibernateMappingFileGenerator {
 			for(DBConfig dbConfig:dbConfigList) {
 				List<String> allFields=dbConfig.getfieldList(); 
 				List<String> allColumns=dbConfig.getColumns();
+				String primaryKeyField=dbConfig.getPrimaryKey();
+				String primaryKeyColumn=allColumns.get(allFields.indexOf(primaryKeyField));
 				/* creating class label in mapping file*/
 				Element classLabel=document.createElement("class");
 				root.appendChild(classLabel);
@@ -47,25 +48,30 @@ public class HibernateMappingFileGenerator {
 				Element idLabel=document.createElement("id");
 				classLabel.appendChild(idLabel);
 				Attr idFieldName=document.createAttribute("name");
-				idFieldName.setValue(allFields.get(0));    // !!!! BAD CODE, NEED TO CHANGE AFTER CHANGE DBCONFIG CLASS
+				idFieldName.setValue(primaryKeyField);    
 				Attr idColumnName=document.createAttribute("column");
-				idColumnName.setValue(allColumns.get(0));     // !!!! BAD CODE, NEED TO CHANGE AFTER CHANGE DBCONFIG CLASS
+				idColumnName.setValue(primaryKeyColumn);   
 				idLabel.setAttributeNode(idFieldName);
 				idLabel.setAttributeNode(idColumnName);
 				/* creating id label in mapping file*/
 				
+				
 				/* creating property label in mapping file*/
-				for(int i=1;i<allColumns.size();i++) {
+				for(int i=0;i<allColumns.size();i++) {
+					if(allFields.get(i)==primaryKeyField) {
+						continue;
+					}
 					Element propertyLabel=document.createElement("property");
 					classLabel.appendChild(propertyLabel);
 					Attr propertyFieldName=document.createAttribute("name");
-					propertyFieldName.setValue(allFields.get(i));    // !!!! BAD CODE, NEED TO CHANGE AFTER CHANGE DBCONFIG CLASS
+					propertyFieldName.setValue(allFields.get(i));  
 					Attr propertyColumnName=document.createAttribute("column");
-					propertyColumnName.setValue(allColumns.get(i));     // !!!! BAD CODE, NEED TO CHANGE AFTER CHANGE DBCONFIG CLASS
+					propertyColumnName.setValue(allColumns.get(i));   
 					propertyLabel.setAttributeNode(propertyFieldName);
 					propertyLabel.setAttributeNode(propertyColumnName);
 				}
 				/* creating property label in mapping file*/
+				
 			}
 			
 			/* transform dom object to xml file*/
@@ -78,7 +84,7 @@ public class HibernateMappingFileGenerator {
 			transformer.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC,"yes");
 			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "10");
 			transformer.transform(domSource, streamsResult);
-			System.out.println("mapper configs successfully created!");
+			System.out.println("mapper configs successfully created at: "+filePath);
 			/* transform dom object to xml file*/
 		}catch (ParserConfigurationException pce) {
 			pce.printStackTrace();
