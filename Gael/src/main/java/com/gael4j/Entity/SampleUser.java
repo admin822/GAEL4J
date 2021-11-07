@@ -8,7 +8,7 @@ import javax.persistence.*;
  * @author Hugo Huang
  * Sampel User class with JPA annotation. We use this class as a test case.
  */
-@PrivateData(schema = "2390finalsample")
+@PrivateData(schema = "2390finalsample", primaryKey = "id")
 @Entity
 @Table(name = "users")
 public class SampleUser {
