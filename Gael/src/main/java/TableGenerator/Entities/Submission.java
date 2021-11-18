@@ -1,5 +1,8 @@
 package TableGenerator.Entities;
 
+import com.gael4j.Gael.Annotations.userdata;
+
+@userdata
 public class Submission {
 	private Student student;
 	private String submissionId;
@@ -14,7 +17,7 @@ public class Submission {
 	
 	@Override
 	public String toString() {
-		return "Submission [student=" + student.getProjects() + ", submissionId=" + submissionId + ", submissionAnswer="
+		return "Submission [student=" + student.getStudentId() + ", submissionId=" + submissionId + ", submissionAnswer="
 				+ submissionAnswer + "]";
 	}
 	public Student getStudent() {

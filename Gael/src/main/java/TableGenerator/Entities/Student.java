@@ -5,7 +5,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.gael4j.Gael.Annotations.PrivateData;
+import com.gael4j.Gael.Annotations.userdata;
 
+@userdata
 public class Student {
 	private String studentId;
 	private Set<Submission> submissions=new HashSet<Submission>();

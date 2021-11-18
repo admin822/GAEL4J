@@ -25,31 +25,8 @@ import com.gael4j.Entity.DBConfig;
 public class Utils {
 	
 	// THIS NEEDS TO BE GENERIC BEFORE PUBLISH!
-	 static Properties createDBProperties(DBConfig dbConfig) {
-		Properties prop= new Properties();
-		//generic form: jdbc:mysql://<hostname>:<port>/dbname
-        prop.setProperty("hibernate.connection.url", "jdbc:mysql://localhost:3306/"+dbConfig.getDatabaseName());
-        //You can use any database you want, I had it configured for Postgres
-        prop.setProperty("dialect", "org.hibernate.dialect.MySQ8LDialect");
-        prop.setProperty("hibernate.connection.username", "USERNAME");
-        prop.setProperty("hibernate.connection.password", "PASSWORD");
-        prop.setProperty("hibernate.connection.driver_class", "com.mysql.cj.jdbc.Driver");
-        prop.setProperty("show_sql", "true"); //If you wish to see the generated sql query
-        prop.setProperty("connection.pool_size", "10"); // pool size is 10 rn
-        return prop;
-	}
-	public static List<String> getAllMappers(String pathToMappers){
-		List<String> Mappers=new LinkedList<>();
-		File folder = new File(pathToMappers);
-		File[] listOfFiles = folder.listFiles();
-		for (int i = 0; i < listOfFiles.length; i++) {
-			String filename = listOfFiles[i].getName();
-	        if(filename.endsWith(".hbm.xml")||filename.endsWith(".HBM.XML")) {
-	            Mappers.add(pathToMappers+filename);
-	        }
-		}
-		return Mappers;
-	}
+
+	
 	static List<Object> handleQuery(Session session, String id,String className, String idName){
 		 try {
 			 session.beginTransaction();

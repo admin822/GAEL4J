@@ -41,4 +41,7 @@ public class TableGenerator {
 	public Session getSession() {
 		return this.sessionFactory.openSession();
 	}
+	public SessionFactory getSessionFactory() {
+		return this.sessionFactory;
+	}
 }

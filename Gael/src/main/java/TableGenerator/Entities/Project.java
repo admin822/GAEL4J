@@ -1,5 +1,8 @@
 package TableGenerator.Entities;
 
+import com.gael4j.Gael.Annotations.userdata;
+
+@userdata
 public class Project {
 	private Student student;
 	private String projectId;

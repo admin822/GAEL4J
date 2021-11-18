@@ -5,11 +5,11 @@
                     <id column="student_id" name="studentId"/>
                     <set name="submissions" table="submissions" inverse="true">
 				        <key column="student_id" not-null="true"/>
-				        <!-- <one-to-many class="TableGenerator.Entities.Submission"/> -->
+				         <one-to-many class="TableGenerator.Entities.Submission"/> 
 				    </set>
 				    <set name="projects" table="projects" inverse="true">
 				        <key column="student_id" not-null="true"/>
-				        <!-- <one-to-many class="TableGenerator.Entities.Project"/>  -->
+				         <one-to-many class="TableGenerator.Entities.Project"/> 
 				    </set>
           </class>
           <!-- ========================== class mapper for student ================================== -->
@@ -18,6 +18,7 @@
           <!-- ========================== class mapper for submission ================================== -->
           <class name="TableGenerator.Entities.Submission" table="submissions">
                     <id column="submission_id" name="submissionId"/>
+                    
                     <property column="submission_answer" name="submissionAnswer"/>
                     <many-to-one name="student" class="TableGenerator.Entities.Student" column="student_id"></many-to-one> 
              
