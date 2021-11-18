@@ -20,12 +20,13 @@ import com.gael4j.DAO.DAOManager;
 import com.gael4j.DAO.NonJPA.Hibernate.HibernateManager;
 import com.gael4j.DAO.NonJPA.Hibernate.HibernateMappingFileGenerator;
 import com.gael4j.DAO.JPA.Hibernate.JPAHibernateManager;
+import com.gael4j.Entity.ChildNode;
 import com.gael4j.Entity.DBConfig;
 import com.gael4j.Gael.AnnotationProcessing.JPA.Controller;
 import com.gael4j.Gael.AnnotationProcessing.NonJPA.ReflectionProcessing;
 
 public class Gael {
-	Map<Class<?>,Set<Class<?>>> directedTableGraph;
+	Map<Class<?>,Set<ChildNode>> directedTableGraph;
 	boolean useJPA;
 	DAOManager daoManager;
 	final String NONJPA_RSC_PATH="./target/classes/mappers.hbm.xml";
