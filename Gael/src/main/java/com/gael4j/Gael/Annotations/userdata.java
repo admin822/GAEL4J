@@ -21,6 +21,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface userdata {
 	public String table() default "";
-	public String schema() default "";
 }
 

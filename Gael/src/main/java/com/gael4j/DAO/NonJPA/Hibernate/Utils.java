@@ -1,11 +1,13 @@
 package com.gael4j.DAO.NonJPA.Hibernate;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -36,8 +38,17 @@ public class Utils {
         prop.setProperty("connection.pool_size", "10"); // pool size is 10 rn
         return prop;
 	}
-	 static void generateMapperFiles(List<DBConfig> dbConfigList,String resourcePath) {
-		HibernateMappingFileGenerator.generateMappers(dbConfigList,resourcePath);
+	public static List<String> getAllMappers(String pathToMappers){
+		List<String> Mappers=new LinkedList<>();
+		File folder = new File(pathToMappers);
+		File[] listOfFiles = folder.listFiles();
+		for (int i = 0; i < listOfFiles.length; i++) {
+			String filename = listOfFiles[i].getName();
+	        if(filename.endsWith(".hbm.xml")||filename.endsWith(".HBM.XML")) {
+	            Mappers.add(pathToMappers+filename);
+	        }
+		}
+		return Mappers;
 	}
 	static List<Object> handleQuery(Session session, String id,String className, String idName){
 		 try {

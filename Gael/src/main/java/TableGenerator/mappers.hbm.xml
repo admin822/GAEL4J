@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<hibernate-mapping>
+		  <!-- ========================== class mapper for Student ================================== -->
+          <class name="TableGenerator.Entities.Student" table="students">
+                    <id column="student_id" name="studentId"/>
+                    <set name="submissions" table="submissions" inverse="true">
+				        <key column="student_id" not-null="true"/>
+				        <!-- <one-to-many class="TableGenerator.Entities.Submission"/> -->
+				    </set>
+				    <set name="projects" table="projects" inverse="true">
+				        <key column="student_id" not-null="true"/>
+				        <!-- <one-to-many class="TableGenerator.Entities.Project"/>  -->
+				    </set>
+          </class>
+          <!-- ========================== class mapper for student ================================== -->
+          
+          
+          <!-- ========================== class mapper for submission ================================== -->
+          <class name="TableGenerator.Entities.Submission" table="submissions">
+                    <id column="submission_id" name="submissionId"/>
+                    <property column="submission_answer" name="submissionAnswer"/>
+                    <many-to-one name="student" class="TableGenerator.Entities.Student" column="student_id"></many-to-one> 
+             
+          </class>
+           <!-- ========================== class mapper for submission ================================== -->
+           
+          
+          
+          <!-- ========================== class mapper for project ================================== -->
+           <class name="TableGenerator.Entities.Project" table="projects">
+	          <id column="project_id" name="projectId"/>
+	          <property column="summary" name="summary"/>
+	          <many-to-one name="student" class="TableGenerator.Entities.Student" column="student_id"></many-to-one> 
+          </class>
+          <!-- ========================== class mapper for project ================================== -->
+          
+          
+          
+          
+          <!-- ========================== class mapper for grade ================================== -->
+           <class name="TableGenerator.Entities.Grade" table="grades">
+	          <id column="grade_id" name="gradeId"/>
+	          <property column="grader_id" name="graderId"/>
+	          <property column="score" name="score"></property>
+	          <many-to-one name="submission" class="TableGenerator.Entities.Submission" column="submission_id"></many-to-one> 
+          </class>
+          <!-- ========================== class mapper for grade ================================== -->
+          
+          
+          
+          
+          
+           <!-- ========================== class mapper for presentation ================================== -->
+           <class name="TableGenerator.Entities.Presentation" table="presentations">
+	          <id column="presentation_id" name="presentationId"/>
+	          <property column="duration_in_mins" name="durationInMins"/>
+	          <many-to-one name="project" class="TableGenerator.Entities.Project" column="project_id"></many-to-one> 
+          </class>
+          <!-- ========================== class mapper for presentation ================================== -->
+          
+          
+</hibernate-mapping>
