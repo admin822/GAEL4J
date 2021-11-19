@@ -1,7 +1,5 @@
 # GAEL4J
-GDPR-compliant Data Access and Erasure Tool for Java
-
-
+An external, non-invasive GDPR-compliant Data Access and Erasure Tool for Java
 
 ## Code Structure:
 in src folder:
@@ -13,11 +11,12 @@ in src folder:
   - Util
     - JPAUtils
     - Util  
-  - Gael.class(```boolean usingJPa```, ```List<DBConfig> dbTableList``` in this class'constructor, if ```usingJpa==true```, then use what is provided in **JpaProcessing**, otherwise, **processing**; but either way, the result of constructor is to get ```dbTableList``` which contains all tables related)
+  - Gael.class(```boolean usingJPa```,  in this class'constructor, if ```usingJpa==true```, then use what is provided in **JpaProcessing**, otherwise, **processing**; but either way, the result of constructor is to get ```directedGraph``` which contains a directed graph that indicates the associations between different tables)
  
 
 - com.gael4j.Entity
-  - DBConfig.class(```String db_name,table_name,List<String> column_names,className, FieldList```)
+  - ~~DBConfig.class(```String db_name,table_name,List<String> column_names,className, FieldList```)~~
+  - ChildNode(```boolean isBidirectional, Class<?> nodeClass```)
 
 - com.gael4j.DAO
   - HibernateMaster.class
@@ -34,7 +33,12 @@ in test folder:
 - [x] Achieve **class level** *userdata* annotation **without** the *exclude* annotation. Application should be able to retrieve and delete designated userdata from database tables **without** *foreign key*
 
 - [x] Develope two branches: one with JPA annotation, the other without
-- [ ] Add in complex query and deletion logic when multiple tables connected with foreign keys are presented.
+- [x] Add in complex query and deletion logic when multiple tables connected with foreign keys are presented.
+- [x] Support uni/bidirectional one-to-one, many-to-one, one-to-many associations between tables. 
+- [ ] Consider more complex scenarios like uni/bidirectional many-to-many associations between tables
+- [ ] consider adding ```@exclude``` annotation into the annotation set to indicate which field in a **privacy class** should be left out when queried.
+- [ ] Develope a Demo( a toy project, package up GAEL, add GAEL into the toy project, test it) (<b><span style="color:red" >MANDATORY</span></b>)
+- [ ] Write a report (<b><span style="color:red" >MANDATORY</span></b>)
 
 
 ## FIX ME
