@@ -1,13 +1,16 @@
 package com.gael4j.DAO.NonJPA.Hibernate;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
@@ -16,161 +19,152 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
+import java.util.concurrent.TimeoutException;import org.hibernate.HibernateError;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.query.Query;
 import org.hibernate.service.ServiceRegistry;
 
 import com.gael4j.DAO.DAOManager;
 import com.gael4j.DAO.NonJPA.Hibernate.Concurrency.MultiDBConcurrency;
 import com.gael4j.DAO.NonJPA.Hibernate.Concurrency.MultiTableDeletion;
 import com.gael4j.DAO.NonJPA.Hibernate.Concurrency.MultiTableQuery;
+import com.gael4j.Entity.ChildNode;
 import com.gael4j.Entity.DBConfig;
+import com.gael4j.Gael.Util.Util;
+
+import javassist.tools.rmi.ObjectNotFoundException;
+import net.bytebuddy.asm.Advice.This;
+import net.bytebuddy.dynamic.scaffold.MethodRegistry.Handler.ForAbstractMethod;
+
 import java.util.concurrent.Executors;
 
 public class HibernateManager implements DAOManager{
-	private Map<String, SessionFactory> db2SessionFactory;
-	private Map<String, List<String>> db2classes;
-	private ExecutorService threadPool;
-	public HibernateManager(List<DBConfig> dbConfigList, String resourcePath) {
-		Utils.generateMapperFiles(dbConfigList,resourcePath);
-		threadPool=Executors.newFixedThreadPool(Math.min(10, dbConfigList.size())); // consistent with hibernate's connection pool
-		db2classes=new HashMap<>();
-		db2SessionFactory=new HashMap<>();
-		for(DBConfig dbConfig:dbConfigList) {
-			String dbName=dbConfig.getDatabaseName();
-			List<String> tables=db2classes.getOrDefault(dbName, new LinkedList<>());
-			tables.add(dbConfig.getClassName());
-			db2classes.put(dbName, tables);
-			if(db2SessionFactory.containsKey(dbName)) {
-				continue;
-			}
-			Properties dbProps=Utils.createDBProperties(dbConfig);
-			Configuration config=new Configuration().setProperties(dbProps);
-			
-			SessionFactory sessionFactory = config.addResource("mappers.hbm.xml").buildSessionFactory();
-			db2SessionFactory.put(dbName, sessionFactory);
+	private SessionFactory sessionFactory;
+	private Map<Class<?>, Map<Class<?>, String>> child2Parent2ForeignKey;
+	private Map<Class<?>,Set<ChildNode>> directedTableGraph;
+	public HibernateManager(String pathToMapperFiles, String pathToDBProps,
+							Map<Class<?>,Set<ChildNode>> directedTableGraph,
+							Map<Class<?>, Map<Class<?>, String>> child2Parent2ForeignKey) {
+		System.out.println("================== BUILDING HIBERNATE MANAGER ==================");
+		List<String> allMappers =Util.getAllMappers(pathToMapperFiles);
+		System.out.println("Detected "+allMappers.size()+" mapper files in "+pathToMapperFiles);
+		Properties Hibernateprop = Util.createHibernateProps(pathToDBProps);
+		Configuration config=new Configuration().setProperties(Hibernateprop);
+		for(String mapperFile:allMappers) {
+			File temp=new File(mapperFile);
+			config.addResource(temp.getName());
 		}
-		
+		this.sessionFactory=config.buildSessionFactory();
+		this.directedTableGraph=directedTableGraph;
+		this.child2Parent2ForeignKey=child2Parent2ForeignKey;
 	}
-	public List<Object> query(DBConfig dbConfig, String primaryKeyValue){
-//		return slowQuery(id);
-//		return fastQuery(id);
-		return complexQuery(dbConfig, primaryKeyValue);
-	}
-	public void delete(DBConfig dbConfig, String primaryKeyValue) {
-//		fastDeletion(id);
-		complexDeletion(dbConfig, primaryKeyValue);
-	}
-	private void complexDeletion(DBConfig dbConfig, String primaryKeyValue) {
-		List<Future<?>> workers=new LinkedList<>();
-		workers.add(singleTableDeletion(dbConfig, primaryKeyValue));
-		for(Future<?> worker:workers) { // !!! Consider do we really need to wait here????
-			try {
-				worker.get();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ExecutionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
-	private List<Object> complexQuery(DBConfig dbConfig, String primaryKeyValue) {
+	@Override
+	public List<Object> query(Class<?> entityClass, String primaryKeyValue) {
+		System.out.println("================== QUERYING USER PRIVACY DATA ==================");
 		List<Object> result=new LinkedList<>();
-		List<Object> threadSafeResult=Collections.synchronizedList(result);
-		List<Future<?>> workers=new LinkedList<>();
-		// for now we only worry about query the starting table
-		
-		workers.add(singleTableQuery(dbConfig, primaryKeyValue, threadSafeResult));
-		for(Future<?> worker:workers) {
-			try {
-				worker.get();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ExecutionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return result;
-	}
-	private Future<?> singleTableQuery(DBConfig dbConfig, String primaryKeyValue, List<Object> queryResult){
-		String tableName=dbConfig.getClassName();
-		Session session=db2SessionFactory.get(dbConfig.getDatabaseName()).openSession();
-		String idName=dbConfig.getPrimaryKey();
-		return threadPool.submit(new MultiTableQuery(tableName, primaryKeyValue, queryResult, session, idName));
-	}
-	private Future<?> singleTableDeletion(DBConfig dbConfig, String primaryKeyValue){
-		String tableName=dbConfig.getClassName();
-		Session session=db2SessionFactory.get(dbConfig.getDatabaseName()).openSession();
-		String idName=dbConfig.getPrimaryKey();
-		return threadPool.submit(new MultiTableDeletion(tableName, primaryKeyValue, session, idName));
-	}
-	
-	@Deprecated
-	private List<Object> slowQuery(String id){
-		List<Object> result=new LinkedList<>();
-		for(String db:db2classes.keySet()) {
-			SessionFactory currentFac=db2SessionFactory.get(db);
-			for(String table:db2classes.get(db)) {
-				Session session = currentFac.openSession();
-				result.addAll(Utils.handleQuery(session, id,table,"userID"));
-			}
-		}
+		Set<String> pks=new HashSet<>();
+		pks.add(primaryKeyValue);
+		handleQuery(result, entityClass, pks , false);
 		return result;
 	}
 	
-	@Deprecated
-	private void fastDeletion(String id){
-		ExecutorService threadPool=Executors.newFixedThreadPool(Math.min(3, db2classes.keySet().size()));
-		List<Future<?>> futures=new LinkedList<Future<?>>();
-		for(String db:db2classes.keySet()) {
-			SessionFactory currentFac=db2SessionFactory.get(db);
-			List<String> tables=db2classes.get(db);
-			futures.add(threadPool.submit(new MultiDBConcurrency(true, null, currentFac, tables, "userID",id)));
-		}
-		for(Future<?> future:futures) {
-			try {
-				future.get();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ExecutionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+	@Override
+	public void delete(Class<?> entityClass, String primaryKeyValue) {
+		System.out.println("================== DELETING USER PRIVACY DATA ==================");
+		Set<String> pks=new HashSet<>();
+		pks.add(primaryKeyValue);
+		handleDelete(entityClass, pks);
 	}
 	
-	@Deprecated
-	private List<Object> fastQuery(String id){
-		List<Object> result=new LinkedList<>();
-		List<Object> threadSafeResult=Collections.synchronizedList(result);
-		ExecutorService threadPool=Executors.newFixedThreadPool(Math.min(3, db2classes.keySet().size()));
-		List<Future<?>> futures=new LinkedList<Future<?>>();
-		for(String db:db2classes.keySet()) {
-			SessionFactory currentFac=db2SessionFactory.get(db);
-			List<String> tables=db2classes.get(db);
-			futures.add(threadPool.submit(new MultiDBConcurrency(false, threadSafeResult, currentFac, tables, "userID",id)));
+	private boolean hasChildNode(Class<?> currentClass) {
+		if(directedTableGraph.containsKey(currentClass)==false||directedTableGraph.get(currentClass).isEmpty()) {
+			// this is a leaf node, no other node descends from it
+			return false;
 		}
-		for(Future<?> future:futures) {
-			try {
-				future.get();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ExecutionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		return true;
+	}
+	private void handleDelete(Class<?> currentClass, Set<String> primaryKeys) {
+		int counter=0;
+		if(hasChildNode(currentClass)) {
+			for(ChildNode cn:directedTableGraph.get(currentClass)) {
+				handleDelete(cn.getNodeClass(), getChildrenPrimaryKeys(currentClass, cn.getNodeClass(), primaryKeys));
 			}
 		}
-		return result;
+		Session session=sessionFactory.openSession();
+		try {
+			for(String pk:primaryKeys) {
+				Object obj=session.get(currentClass, pk);
+				if(obj==null) {
+					continue;
+				}
+				session.beginTransaction();
+				session.delete(obj);
+				session.getTransaction().commit();
+				counter++;
+			}
+			System.out.println("For class "+currentClass.getName()+" "+counter+" rows are deleted");
+		}
+		catch (HibernateException e) {
+	    	System.out.println("Deletion Error occured when trying to delete from class "+currentClass.getName());
+	    	e.printStackTrace();
+	        if (session.getTransaction() != null) {
+	            session.getTransaction().rollback();
+	            System.out.println("sucessful rollback");
+	        }
+	    }finally {
+	    	if(session!=null&&session.isOpen())
+	    		session.close();
+	    }
 	}
-	
+	private void handleQuery(List<Object> results,Class<?> currentClass, Set<String> primaryKeys,boolean hasLoaded) {
+		System.out.println("Currently getting data from class: "+currentClass.getName()+" "+primaryKeys.size()+" records of this class will be retrieved");
+//		String verbose="The primary keys are [";
+//		for(String pk:primaryKeys) {
+//			verbose+=" "+pk;
+//		}
+//		verbose+="]";
+//		System.out.println(verbose);
+		Set<String> validPrimaryKeySet=new HashSet<String>(primaryKeys);
+		if(!hasLoaded) {
+			for(String pk:primaryKeys) {
+				Object obj=sessionFactory.openSession().get(currentClass, pk);
+				if(obj==null) {
+					validPrimaryKeySet.remove(pk);
+					continue;
+				}
+				results.add(obj);
+			}
+		}
+		if(hasChildNode(currentClass)==false||validPrimaryKeySet.isEmpty()) {
+			return;
+		}
+		for(ChildNode cn:directedTableGraph.get(currentClass)) {
+			handleQuery(results, cn.getNodeClass(), getChildrenPrimaryKeys(currentClass, cn.getNodeClass(), validPrimaryKeySet), cn.isBidirectional());
+		}
+	}
+	private Set<String> getChildrenPrimaryKeys(Class<?> currentClass, Class<?> childClass, Set<String> primaryKeys){
+		Set<String> childrenPrimaryKeys=new HashSet();
+		String childPrimaryKeyName=sessionFactory.getClassMetadata(childClass).getIdentifierPropertyName();
+		String childForeignKeyName=child2Parent2ForeignKey.get(childClass).get(currentClass);
+		String parentPrimaryKeyName=sessionFactory.getClassMetadata(currentClass).getIdentifierPropertyName();
+		String[] strings=childClass.getName().split("\\.");
+		String childName=strings[strings.length-1];
+		Session session=sessionFactory.openSession();
+		for(String parentPrimaryKey:primaryKeys) {
+			String hql = "SELECT  CHILD." + childPrimaryKeyName+
+					 " FROM "+childName+" AS CHILD "+
+					 "WHERE CHILD."+childForeignKeyName+"."+parentPrimaryKeyName+"="+parentPrimaryKey;
+			Query query = session.createQuery(hql);
+			List<Object> results = query.list();
+			for(Object result:results) {
+				childrenPrimaryKeys.add(result.toString());
+			}
+		}
+		return childrenPrimaryKeys;
+	}
 }
+	

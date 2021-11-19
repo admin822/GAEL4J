@@ -2,6 +2,7 @@ package com.gael4j.Gael;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,60 +20,65 @@ import com.gael4j.DAO.DAOManager;
 import com.gael4j.DAO.NonJPA.Hibernate.HibernateManager;
 import com.gael4j.DAO.NonJPA.Hibernate.HibernateMappingFileGenerator;
 import com.gael4j.DAO.JPA.Hibernate.JPAHibernateManager;
+import com.gael4j.Entity.ChildNode;
 import com.gael4j.Entity.DBConfig;
 import com.gael4j.Gael.AnnotationProcessing.JPA.Controller;
-import com.gael4j.Gael.AnnotationProcessing.NonJPA.ReflectionProcessing;
+import com.gael4j.Gael.AnnotationProcessing.NonJPA.RelationMapping;
 
 public class Gael {
-	List<DBConfig> dbConfigList;
-	Map<String, DBConfig> tableName2DBConfig;
+	Map<Class<?>,Set<ChildNode>> directedTableGraph;
+	Map<Class<?>, Map<Class<?>, String>> child2Parent2ForeignKey;
 	boolean useJPA;
 	DAOManager daoManager;
-	final String NONJPA_RSC_PATH="./target/classes/mappers.hbm.xml";
-	/** THIS IS A TEST FUNCTION, DELETE IT BEFORE PUBLISH!
-	 * this function prints all entries in the privateInfoMap to the console
-	 */
-	//#####################################
-	public void testFunction() {
-		System.out.println(this.dbConfigList.size());
-		for(String tableName:tableName2DBConfig.keySet()) {
-			System.out.println(tableName);
-			System.out.println("    "+tableName2DBConfig.get(tableName).toString());
-		}
-		HibernateMappingFileGenerator.generateMappers(dbConfigList,NONJPA_RSC_PATH);
-	}
-	public void testHibernateManagerInit() {
-		this.daoManager=new HibernateManager(this.dbConfigList,NONJPA_RSC_PATH);
-	}
-	//#####################################
+	final String DB_PROPS_PATH="./target/classes/db.properties";
 
-	public void delete(String tableName, String primaryKeyValue) {
-		daoManager.delete(tableName2DBConfig.get(tableName), primaryKeyValue);
+	public void delete(Class<?> entityClass, String primaryKeyValue) {
+		daoManager.delete(entityClass, primaryKeyValue);
 	}
-	public List<Object> query(String tableName, String primaryKeyValue){
-		return daoManager.query(tableName2DBConfig.get(tableName), primaryKeyValue);
+	public List<Object> query(Class<?> entityClass, String primaryKeyValue){
+		return daoManager.query(entityClass, primaryKeyValue);
 	}
 	
-	public Gael(String packageScanPath,boolean useJPA) {
+	/*        test         function              */
+	public void test1() {
+		System.out.println("================== RUNNING GAEL TEST1 ==================");
+		for(Class<?> c:this.directedTableGraph.keySet()) {
+			System.out.println("Current Class is "+c.getName());
+			for(ChildNode cn:directedTableGraph.get(c)) {
+				System.out.println("\tchild class: "+cn.getNodeClass().getName()+"\tis bidirectional: "+cn.isBidirectional());
+			}
+		}
+	}
+	public void test2() {
+		System.out.println("================== RUNNING GAEL TEST2 ==================");
+		for(Class<?> c:child2Parent2ForeignKey.keySet()) {
+			System.out.println("Child Class is "+c.getName());
+			Map<Class<?>, String> parentClass2Keys=child2Parent2ForeignKey.get(c);
+			for(Class<?> parentClass:parentClass2Keys.keySet()) {
+				System.out.println("\t parent class is "+parentClass.getName()+"\tforeign key is "+parentClass2Keys.get(parentClass));
+			}
+		}
+	}
+	/*        test         function              */
+	
+	
+	public Gael(String packageScanPath,boolean useJPA,String JPAPersistenceUnitName,String pathToMapperFiles) {
 		this.useJPA=useJPA;
 		if(this.useJPA) {
-			dbConfigList=Controller.scan(packageScanPath);
+			JPAUtils.persistenceUnitName = JPAPersistenceUnitName;
+			//TODO: get directedTableGraph
 		} else {
-			dbConfigList=ReflectionProcessing.reflectionProcessing(packageScanPath);
-		}
-		if (dbConfigList != null) {
-			tableName2DBConfig = dbConfigList.stream().collect(
-					Collectors.toMap(DBConfig::getTableName, dbConfig->dbConfig));
+			//TODO: get directedTableGraph
+			Map[] result=RelationMapping.relationMapping(packageScanPath, pathToMapperFiles);
+			directedTableGraph=result[0];
+			child2Parent2ForeignKey=result[1];
 		}
 		if (useJPA) {
-			daoManager = new JPAHibernateManager();
+			//TODO: get daoManager
 		} else {
-			daoManager = new HibernateManager(dbConfigList, NONJPA_RSC_PATH);
+			//TODO: get daoManager
+			daoManager=new HibernateManager(pathToMapperFiles, DB_PROPS_PATH,this.directedTableGraph,this.child2Parent2ForeignKey);
 		}
 	}
 
-	public Gael(String packageScanPath,boolean useJPA, String JPAPersistenceUnitName) {
-		this(packageScanPath, useJPA);
-		JPAUtils.persistenceUnitName = JPAPersistenceUnitName;
-	}
 }

@@ -1,14 +1,22 @@
 package com.gael4j.Gael.Util;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.hibernate.cfg.Configuration;
+
+import com.gael4j.Entity.DBConfig;
 
 
 /**
@@ -59,6 +67,41 @@ public class Util {
 		resultList.add(oldFieldList);
 		resultList.add(currentFieldList);
 		return resultList;
+	}
+	
+	public static List<String> getAllMappers(String pathToMappers){
+		List<String> Mappers=new LinkedList<>();
+		File folder = new File(pathToMappers);
+		File[] listOfFiles = folder.listFiles();
+		for (int i = 0; i < listOfFiles.length; i++) {
+			String filename = listOfFiles[i].getName();
+	        if(filename.endsWith(".hbm.xml")||filename.endsWith(".HBM.XML")) {
+	        	Mappers.add(listOfFiles[i].getAbsolutePath());
+	        }
+		}
+		return Mappers;
+	}
+	
+	public static Properties createHibernateProps(String pathToDBProps) {
+		Properties dbProperties=new Properties();
+		try (InputStream input = new FileInputStream(pathToDBProps)) {
+			dbProperties.load(input);
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+		System.out.println("creating Hibernate configuration...");
+		Properties Hibernateprop= new Properties();
+		//generic form: jdbc:mysql://<hostname>:<port>/dbname
+		Hibernateprop.setProperty("hibernate.connection.url", dbProperties.getProperty("url"));
+		Hibernateprop.setProperty("dialect", "org.hibernate.dialect.MySQ8LDialect");
+		Hibernateprop.setProperty("hibernate.connection.username", dbProperties.getProperty("username"));
+		Hibernateprop.setProperty("hibernate.connection.password", dbProperties.getProperty("password"));
+		Hibernateprop.setProperty("hibernate.connection.driver_class", "com.mysql.cj.jdbc.Driver");
+		Hibernateprop.setProperty("hibernate.hbm2ddl.auto","update");
+		Hibernateprop.setProperty("show_sql", "true"); //If you wish to see the generated sql query
+		Hibernateprop.setProperty("connection.pool_size", "10"); // pool size is 10 rn
+		return Hibernateprop;
 	}
 	
 	
