@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,8 +19,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
+import java.util.concurrent.TimeoutException;import org.hibernate.HibernateError;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
@@ -35,6 +36,7 @@ import com.gael4j.Entity.ChildNode;
 import com.gael4j.Entity.DBConfig;
 import com.gael4j.Gael.Util.Util;
 
+import javassist.tools.rmi.ObjectNotFoundException;
 import net.bytebuddy.asm.Advice.This;
 import net.bytebuddy.dynamic.scaffold.MethodRegistry.Handler.ForAbstractMethod;
 
@@ -62,10 +64,9 @@ public class HibernateManager implements DAOManager{
 	}
 	@Override
 	public List<Object> query(Class<?> entityClass, String primaryKeyValue) {
-		// TODO Auto-generated method stub
 		System.out.println("================== QUERYING USER PRIVACY DATA ==================");
 		List<Object> result=new LinkedList<>();
-		List<String> pks=new LinkedList<>();
+		Set<String> pks=new HashSet<>();
 		pks.add(primaryKeyValue);
 		handleQuery(result, entityClass, pks , false);
 		return result;
@@ -73,9 +74,12 @@ public class HibernateManager implements DAOManager{
 	
 	@Override
 	public void delete(Class<?> entityClass, String primaryKeyValue) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("================== DELETING USER PRIVACY DATA ==================");
+		Set<String> pks=new HashSet<>();
+		pks.add(primaryKeyValue);
+		handleDelete(entityClass, pks);
 	}
+	
 	private boolean hasChildNode(Class<?> currentClass) {
 		if(directedTableGraph.containsKey(currentClass)==false||directedTableGraph.get(currentClass).isEmpty()) {
 			// this is a leaf node, no other node descends from it
@@ -83,7 +87,40 @@ public class HibernateManager implements DAOManager{
 		}
 		return true;
 	}
-	private void handleQuery(List<Object> results,Class<?> currentClass, List<String> primaryKeys,boolean hasLoaded) {
+	private void handleDelete(Class<?> currentClass, Set<String> primaryKeys) {
+		int counter=0;
+		if(hasChildNode(currentClass)) {
+			for(ChildNode cn:directedTableGraph.get(currentClass)) {
+				handleDelete(cn.getNodeClass(), getChildrenPrimaryKeys(currentClass, cn.getNodeClass(), primaryKeys));
+			}
+		}
+		Session session=sessionFactory.openSession();
+		try {
+			for(String pk:primaryKeys) {
+				Object obj=session.get(currentClass, pk);
+				if(obj==null) {
+					continue;
+				}
+				session.beginTransaction();
+				session.delete(obj);
+				session.getTransaction().commit();
+				counter++;
+			}
+			System.out.println("For class "+currentClass.getName()+" "+counter+" rows are deleted");
+		}
+		catch (HibernateException e) {
+	    	System.out.println("Deletion Error occured when trying to delete from class "+currentClass.getName());
+	    	e.printStackTrace();
+	        if (session.getTransaction() != null) {
+	            session.getTransaction().rollback();
+	            System.out.println("sucessful rollback");
+	        }
+	    }finally {
+	    	if(session!=null&&session.isOpen())
+	    		session.close();
+	    }
+	}
+	private void handleQuery(List<Object> results,Class<?> currentClass, Set<String> primaryKeys,boolean hasLoaded) {
 		System.out.println("Currently getting data from class: "+currentClass.getName()+" "+primaryKeys.size()+" records of this class will be retrieved");
 //		String verbose="The primary keys are [";
 //		for(String pk:primaryKeys) {
@@ -91,20 +128,26 @@ public class HibernateManager implements DAOManager{
 //		}
 //		verbose+="]";
 //		System.out.println(verbose);
+		Set<String> validPrimaryKeySet=new HashSet<String>(primaryKeys);
 		if(!hasLoaded) {
 			for(String pk:primaryKeys) {
-				results.add(sessionFactory.openSession().load(currentClass, pk));
+				Object obj=sessionFactory.openSession().get(currentClass, pk);
+				if(obj==null) {
+					validPrimaryKeySet.remove(pk);
+					continue;
+				}
+				results.add(obj);
 			}
 		}
-		if(hasChildNode(currentClass)==false) {
+		if(hasChildNode(currentClass)==false||validPrimaryKeySet.isEmpty()) {
 			return;
 		}
 		for(ChildNode cn:directedTableGraph.get(currentClass)) {
-			handleQuery(results, cn.getNodeClass(), getChildrenPrimaryKeys(currentClass, cn.getNodeClass(), primaryKeys), cn.isBidirectional());
+			handleQuery(results, cn.getNodeClass(), getChildrenPrimaryKeys(currentClass, cn.getNodeClass(), validPrimaryKeySet), cn.isBidirectional());
 		}
 	}
-	private List<String> getChildrenPrimaryKeys(Class<?> currentClass, Class<?> childClass, List<String> primaryKeys){
-		List<String> childrenPrimaryKeys=new LinkedList<>();
+	private Set<String> getChildrenPrimaryKeys(Class<?> currentClass, Class<?> childClass, Set<String> primaryKeys){
+		Set<String> childrenPrimaryKeys=new HashSet();
 		String childPrimaryKeyName=sessionFactory.getClassMetadata(childClass).getIdentifierPropertyName();
 		String childForeignKeyName=child2Parent2ForeignKey.get(childClass).get(currentClass);
 		String parentPrimaryKeyName=sessionFactory.getClassMetadata(currentClass).getIdentifierPropertyName();

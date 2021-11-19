@@ -21,7 +21,7 @@ public class QueryData {
 //			System.out.println(s.toString());
 //		}
 		//System.out.println(student1.toString());
-		System.out.println(results.get(0).toString());
+		System.out.println(results.get(0));
 		//System.out.println(sub1.toString());
 	}
 }
