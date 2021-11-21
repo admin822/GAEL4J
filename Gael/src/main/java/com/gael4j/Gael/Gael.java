@@ -28,6 +28,7 @@ import com.gael4j.Gael.AnnotationProcessing.NonJPA.RelationMapping;
 public class Gael {
 	Map<Class<?>,Set<ChildNode>> directedTableGraph;
 	Map<Class<?>, Map<Class<?>, String>> child2Parent2ForeignKey;
+	Map<String, DBConfig> name2dbConfigMap;
 	boolean useJPA;
 	DAOManager daoManager;
 	final String DB_PROPS_PATH="./target/classes/db.properties";
@@ -66,6 +67,9 @@ public class Gael {
 		this.useJPA=useJPA;
 		if(this.useJPA) {
 			JPAUtils.persistenceUnitName = JPAPersistenceUnitName;
+			directedTableGraph = Controller.scan(packageScanPath);
+			name2dbConfigMap = Controller.constructDBConfigMap(packageScanPath);
+
 			//TODO: get directedTableGraph
 		} else {
 			//TODO: get directedTableGraph
@@ -75,6 +79,7 @@ public class Gael {
 		}
 		if (useJPA) {
 			//TODO: get daoManager
+			daoManager = new JPAHibernateManager(directedTableGraph, name2dbConfigMap);
 		} else {
 			//TODO: get daoManager
 			daoManager=new HibernateManager(pathToMapperFiles, DB_PROPS_PATH,this.directedTableGraph,this.child2Parent2ForeignKey);
