@@ -1,4 +1,4 @@
-package TableGenerator.Entities;
+package com.gael4j.TableGenerator.Entities;
 
 
 import java.util.HashSet;

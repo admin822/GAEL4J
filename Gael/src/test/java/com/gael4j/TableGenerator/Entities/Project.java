@@ -1,4 +1,4 @@
-package TableGenerator.Entities;
+package com.gael4j.TableGenerator.Entities;
 
 import com.gael4j.Gael.Annotations.userdata;
 

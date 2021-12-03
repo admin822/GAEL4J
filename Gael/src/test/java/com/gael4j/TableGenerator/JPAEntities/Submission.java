@@ -1,4 +1,4 @@
-package TableGenerator.JPAEntities;
+package com.gael4j.TableGenerator.JPAEntities;
 
 import com.gael4j.Gael.Annotations.PrivateData;
 
