@@ -1,6 +1,6 @@
 package com.gael4j.Gael.JPA;
 
-import TableGenerator.JPAEntities.*;
+import com.gael4j.TableGenerator.JPAEntities.*;
 import com.gael4j.DAO.DAOManager;
 import com.gael4j.DAO.JPA.Hibernate.JPAHibernateManager;
 import com.gael4j.Entity.ChildNode;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static TableGenerator.JPAEntities.TableGenerator.createTableAndInsertJPA;
+import static com.gael4j.TableGenerator.JPAEntities.TableGenerator.createTableAndInsertJPA;
 
 public class JPAHibernateManagerTest {
 
