@@ -1,6 +1,10 @@
 # GAEL4J
 An external, non-invasive GDPR-compliant Data Access and Erasure Tool for Java
 
+## Showcase for GAEL:
+
+You can find folders: ```JPAExample``` and ```NonJPAExample``` under this repo. They hold source code and README for the demos of JPA setting and Non-JPA setting respectively.
+
 ## Code Structure:
 Inside src/main/java folder:
 ### com.gael4j.Gael
