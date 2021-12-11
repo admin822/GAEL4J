@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<hibernate-mapping>
+		  <!-- ========================== class mapper for Student ================================== -->
+          <class name="com.gael4j.NonJPADemo.Entity.Student" table="students">
+                    <id column="student_id" name="studentId"/>
+                    <set name="submissions" table="submissions" inverse="true">
+				        <key column="student_id" not-null="true"/>
+				         <one-to-many class="com.gael4j.NonJPADemo.Entity.Submission"/> 
+				    </set>
+				    <set name="projects" table="projects" inverse="true">
+				        <key column="student_id" not-null="true"/>
+				         <one-to-many class="com.gael4j.NonJPADemo.Entity.Project"/> 
+				    </set>
+          </class>
+          <!-- ========================== class mapper for student ================================== -->
+          
+          
+          <!-- ========================== class mapper for submission ================================== -->
+          <class name="com.gael4j.NonJPADemo.Entity.Submission" table="submissions">
+                    <id column="submission_id" name="submissionId"/>
+                    
+                    <property column="submission_answer" name="submissionAnswer"/>
+                    <many-to-one name="student" class="com.gael4j.NonJPADemo.Entity.Student" column="student_id"></many-to-one> 
+             
+          </class>
+           <!-- ========================== class mapper for submission ================================== -->
+           
+          
+          
+          <!-- ========================== class mapper for project ================================== -->
+           <class name="com.gael4j.NonJPADemo.Entity.Project" table="projects">
+	          <id column="project_id" name="projectId"/>
+	          <property column="summary" name="summary"/>
+	          <many-to-one name="student" class="com.gael4j.NonJPADemo.Entity.Student" column="student_id"></many-to-one> 
+          </class>
+          <!-- ========================== class mapper for project ================================== -->
+          
+          
+          
+          
+          <!-- ========================== class mapper for grade ================================== -->
+           <class name="com.gael4j.NonJPADemo.Entity.Grade" table="grades">
+	          <id column="grade_id" name="gradeId"/>
+	          <property column="grader_id" name="graderId"/>
+	          <property column="score" name="score"></property>
+	          <many-to-one name="submission" class="com.gael4j.NonJPADemo.Entity.Submission" column="submission_id"></many-to-one> 
+          </class>
+          <!-- ========================== class mapper for grade ================================== -->
+          
+          
+          
+          
+          
+           <!-- ========================== class mapper for presentation ================================== -->
+           <class name="com.gael4j.NonJPADemo.Entity.Presentation" table="presentations">
+	          <id column="presentation_id" name="presentationId"/>
+	          <property column="duration_in_mins" name="durationInMins"/>
+	          <many-to-one name="project" class="com.gael4j.NonJPADemo.Entity.Project" column="project_id"></many-to-one> 
+          </class>
+          <!-- ========================== class mapper for presentation ================================== -->
+          
+          
+</hibernate-mapping>
