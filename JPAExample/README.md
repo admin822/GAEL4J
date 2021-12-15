@@ -1,4 +1,4 @@
-# Simple use case for GALE (JPA version)
+# Simple use case for GAEL (JPA version)
 
 This repository is a simple use case in JPA version. 
 It is a basic data generator where you can populate 
