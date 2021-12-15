@@ -5,6 +5,13 @@ An external, non-invasive GDPR-compliant Data Access and Erasure Tool for Java
 
 You can find folders: ```JPAExample``` and ```NonJPAExample``` under this repo. They hold source code and README for the demos of JPA setting and Non-JPA setting respectively.
 
+## Four simple steps to incorporate GAEL into your solution
+1. Include Gael-1.0 in the current project.
+2. Add our self-defined annotation in each class that needs to be marked as a personal data class. This will increase one line of code for each necessary class.
+3. Initialize one GAEL instance with corresponding parameters which specify the settings of GAEL, path of the package that needs to be scanned etc.
+4. Using the APIs provided by GAEL to easily query or delete user’s data using a one-line method. Both methods require two parameters: current user's category table, user's unique id.
+
+
 ## Code Structure:
 Inside src/main/java folder:
 ### com.gael4j.Gael
